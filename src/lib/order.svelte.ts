@@ -4,9 +4,9 @@ const uuid = () => crypto.randomUUID();
 
 export const DEMO_CUSTOMER: Customer = {
 	name: 'Ebn Sina',
-	phone: '01719096456',
+	phone: '01841252123',
 	email: 'ebnsina@example.com',
-	address: 'Maya Kanon, Dhaka, Bangladesh'
+	address: 'Dhaka, Dhaka, Bangladesh'
 };
 
 const EMPTY: Customer = { name: '', phone: '', email: '', address: '' };
