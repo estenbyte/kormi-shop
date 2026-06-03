@@ -1,31 +1,37 @@
-import { findProduct, PRODUCTS } from './products';
+import type { Product } from './products';
+
+export type CartLine = { product: Product; qty: number };
 
 class CartStore {
-	// id -> qty
-	items = $state<Record<string, number>>({});
-
-	lines = $derived(
-		Object.entries(this.items)
-			.filter(([, q]) => q > 0)
-			.map(([id, q]) => ({ product: findProduct(id)!, qty: q }))
-	);
+	lines = $state<CartLine[]>([]);
 
 	total = $derived(this.lines.reduce((s, l) => s + l.product.price * l.qty, 0));
 
 	count = $derived(this.lines.reduce((s, l) => s + l.qty, 0));
 
-	add(id: string) {
-		this.items[id] = (this.items[id] || 0) + 1;
+	add(product: Product) {
+		const ex = this.lines.find((l) => l.product.id === product.id);
+		if (ex) ex.qty += 1;
+		else this.lines.push({ product, qty: 1 });
 	}
 
 	setQty(id: string, qty: number) {
-		this.items[id] = Math.max(0, qty | 0);
+		const q = Math.max(0, qty | 0);
+		if (q === 0) {
+			this.remove(id);
+			return;
+		}
+		const line = this.lines.find((l) => l.product.id === id);
+		if (line) line.qty = q;
+	}
+
+	remove(id: string) {
+		this.lines = this.lines.filter((l) => l.product.id !== id);
 	}
 
 	clear() {
-		this.items = {};
+		this.lines = [];
 	}
 }
 
 export const cart = new CartStore();
-export { PRODUCTS };

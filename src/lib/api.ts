@@ -3,6 +3,8 @@ import { cart } from './cart.svelte';
 
 const uuid = () => crypto.randomUUID();
 
+export type EventType = 'order_confirmation' | 'abandoned_cart' | 'order_cancelled';
+
 export type Customer = {
 	name: string;
 	phone: string;
@@ -12,18 +14,29 @@ export type Customer = {
 
 export type OrderResult = { kormi_event_id: string };
 
-export async function placeOrder(customer: Customer): Promise<OrderResult> {
-	const cfg = config.save() as Config;
-	if (!cfg.key) throw new Error('Set API Key first.');
+function buildOrder(orderId: string) {
+	return {
+		external_id: orderId || 'order-' + uuid().slice(0, 8),
+		total: cart.total,
+		currency: 'BDT',
+		items: cart.lines.map((l) => ({
+			name: l.product.name,
+			qty: l.qty,
+			price: l.product.price
+		}))
+	};
+}
 
-	const items = cart.lines.map((l) => ({
-		name: l.product.name,
-		qty: l.qty,
-		price: l.product.price
-	}));
+export async function sendEvent(
+	type: EventType,
+	customer: Customer,
+	orderId: string
+): Promise<OrderResult> {
+	const cfg = config.save() as Config;
+	if (!cfg.key) throw new Error('Set API Key first (Connection tab).');
 
 	const payload = {
-		event_type: 'order_confirmation',
+		event_type: type,
 		external_event_id: 'evt-' + uuid(),
 		occurred_at: new Date().toISOString(),
 		customer: {
@@ -33,12 +46,7 @@ export async function placeOrder(customer: Customer): Promise<OrderResult> {
 			email: customer.email,
 			address: customer.address
 		},
-		order: {
-			external_id: 'order-' + uuid().slice(0, 8),
-			total: cart.total,
-			currency: 'BDT',
-			items
-		}
+		order: buildOrder(orderId)
 	};
 
 	const headers: Record<string, string> = {

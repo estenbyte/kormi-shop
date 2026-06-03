@@ -1,8 +1,31 @@
 <script lang="ts">
 	import { cart } from '$lib/cart.svelte';
+	import { order } from '$lib/order.svelte';
+	import { sendEvent } from '$lib/api';
+	import { formatBDT } from '$lib/format';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
-	import { ShoppingCart, Minus, Plus, Trash2 } from '@lucide/svelte';
+	import { ShoppingCart, Minus, Plus, Trash2, Timer } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
+
+	let abandonTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function simulateAbandon() {
+		if (abandonTimer) clearTimeout(abandonTimer);
+		const orderId = order.newOrderId();
+		abandonTimer = setTimeout(async () => {
+			if (cart.lines.length === 0) return;
+			try {
+				const { kormi_event_id } = await sendEvent('abandoned_cart', order.customer, orderId);
+				toast.message('abandoned_cart sent', { description: 'kormi_event_id: ' + kormi_event_id });
+			} catch (e) {
+				toast.error('Abandon event failed', {
+					description: e instanceof Error ? e.message : String(e)
+				});
+			}
+		}, 10000);
+		toast.message('Abandoned cart fires in 10s', { description: "Don't place the order!" });
+	}
 </script>
 
 {#if cart.lines.length === 0}
@@ -14,18 +37,22 @@
 	<div class="space-y-2.5">
 		{#each cart.lines as line (line.product.id)}
 			<div class="flex items-center gap-3 rounded-xl bg-muted/50 p-3">
-				<span class="grid size-9 place-items-center rounded-lg bg-card font-display text-sm font-semibold text-muted-foreground">
-					{line.product.name.charAt(0)}
-				</span>
-				<div class="min-w-0">
+				<img
+					src={line.product.image}
+					alt={line.product.name}
+					class="size-16 flex-none rounded-lg object-cover"
+				/>
+				<div class="min-w-0 flex-1">
 					<p class="truncate text-sm font-medium text-foreground">{line.product.name}</p>
-					<p class="tnum text-xs text-muted-foreground">৳{line.product.price} each</p>
+					<p class="tnum text-xs text-muted-foreground">
+						{formatBDT(line.product.price)} · Free shipping
+					</p>
 				</div>
-				<div class="ml-auto flex items-center gap-1.5">
+				<div class="flex items-center gap-1.5">
 					<Button
 						variant="outline"
 						size="icon"
-						class="size-8 rounded-full"
+						class="size-8"
 						onclick={() => cart.setQty(line.product.id, line.qty - 1)}
 					>
 						{#if line.qty <= 1}<Trash2 class="size-3.5" />{:else}<Minus class="size-3.5" />{/if}
@@ -40,21 +67,26 @@
 					<Button
 						variant="outline"
 						size="icon"
-						class="size-8 rounded-full"
+						class="size-8"
 						onclick={() => cart.setQty(line.product.id, line.qty + 1)}
 					>
 						<Plus class="size-3.5" />
 					</Button>
 				</div>
-				<p class="tnum w-16 text-right text-sm font-semibold text-foreground">
-					৳{line.product.price * line.qty}
+				<p class="tnum w-20 text-right text-sm font-semibold text-foreground">
+					{formatBDT(line.product.price * line.qty)}
 				</p>
 			</div>
 		{/each}
 	</div>
 
-	<div class="mt-4 flex items-center justify-between border-t border-dashed border-border pt-4">
-		<span class="text-sm font-medium text-muted-foreground">Total</span>
-		<span class="font-display tnum text-2xl font-bold text-foreground">৳{cart.total}</span>
+	<div class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-dashed border-border pt-4">
+		<div>
+			<span class="text-sm font-medium text-muted-foreground">Subtotal</span>
+			<p class="font-display tnum text-2xl font-bold text-foreground">{formatBDT(cart.total)}</p>
+		</div>
+		<Button variant="outline" class="gap-1.5" onclick={simulateAbandon}>
+			<Timer class="size-4" /> Simulate abandon (10s)
+		</Button>
 	</div>
 {/if}
