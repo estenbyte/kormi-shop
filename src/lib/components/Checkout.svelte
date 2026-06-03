@@ -22,6 +22,7 @@
 		try {
 			const orderId = order.newOrderId();
 			const { kormi_event_id } = await sendEvent('order_confirmation', c, orderId);
+			order.saveLast(cart.lines);
 			toast.success('Order confirmed', { description: 'kormi_event_id: ' + kormi_event_id });
 			await goto('/placed');
 		} catch (e) {
