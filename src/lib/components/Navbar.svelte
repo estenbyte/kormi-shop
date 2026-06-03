@@ -7,11 +7,12 @@
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import * as Select from '$lib/components/ui/select';
 	import { Separator } from '$lib/components/ui/separator';
-	import { ShoppingBag, Plug, ShoppingCart, CreditCard, Search } from '@lucide/svelte';
+	import { ShoppingBag, Plug, ShoppingCart, CreditCard, Search, Package } from '@lucide/svelte';
 	import { cn } from '$lib/utils';
 
 	const links = [
 		{ href: '/cart', label: 'Cart', icon: ShoppingCart },
+		{ href: '/orders', label: 'Orders', icon: Package },
 		{ href: '/checkout', label: 'Checkout', icon: CreditCard },
 		{ href: '/connection', label: 'Connection', icon: Plug }
 	];

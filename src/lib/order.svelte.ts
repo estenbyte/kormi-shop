@@ -4,6 +4,8 @@ import type { CartLine } from './cart.svelte';
 
 const uuid = () => crypto.randomUUID();
 const LAST_ORDER_KEY = 'kormi-shop-last-order';
+const ORDERS_KEY = 'kormi-shop-orders';
+const MAX_ORDERS = 20;
 
 export const DEMO_CUSTOMER: Customer = {
 	name: 'Ebn Sina',
@@ -35,10 +37,21 @@ function loadLast(): LastOrder | null {
 	}
 }
 
+function loadOrders(): LastOrder[] {
+	if (!browser) return [];
+	try {
+		const raw = localStorage.getItem(ORDERS_KEY);
+		return raw ? (JSON.parse(raw) as LastOrder[]) : [];
+	} catch {
+		return [];
+	}
+}
+
 class OrderStore {
 	customer = $state<Customer>({ ...DEMO_CUSTOMER });
 	orderId = $state('');
 	lastOrder = $state<LastOrder | null>(loadLast());
+	orders = $state<LastOrder[]>(loadOrders());
 
 	reset() {
 		this.customer = { ...EMPTY };
@@ -63,7 +76,11 @@ class OrderStore {
 			placedAt: new Date().toISOString()
 		};
 		this.lastOrder = last;
-		if (browser) localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(last));
+		this.orders = [last, ...this.orders].slice(0, MAX_ORDERS);
+		if (browser) {
+			localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(last));
+			localStorage.setItem(ORDERS_KEY, JSON.stringify(this.orders));
+		}
 	}
 }
 
