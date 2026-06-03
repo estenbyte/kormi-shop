@@ -74,7 +74,7 @@
 				<InputGroup.Addon align="inline-start" class="pr-0 max-sm:hidden">
 					<Select.Root type="single" value={category} onValueChange={onCategory}>
 						<Select.Trigger
-							class="h-7 gap-1 rounded-full border-0 bg-muted/60 px-3 text-xs font-medium text-foreground shadow-none hover:bg-muted focus-visible:ring-0"
+							class="h-7 gap-1 border-0 bg-transparent px-2 text-xs font-medium text-foreground shadow-none hover:bg-transparent focus-visible:ring-0"
 						>
 							{titleCase(category)}
 						</Select.Trigger>
