@@ -6,6 +6,7 @@
 	import { titleCase } from '$lib/format';
 	import * as InputGroup from '$lib/components/ui/input-group';
 	import * as Select from '$lib/components/ui/select';
+	import { Separator } from '$lib/components/ui/separator';
 	import { ShoppingBag, Plug, ShoppingCart, CreditCard, Search } from '@lucide/svelte';
 	import { cn } from '$lib/utils';
 
@@ -70,10 +71,10 @@
 			class="w-full max-w-[640px] justify-self-center max-md:order-3 max-md:col-span-full"
 		>
 			<InputGroup.Root class="bg-white">
-				<InputGroup.Addon align="inline-start" class="border-r pr-2 max-sm:hidden">
+				<InputGroup.Addon align="inline-start" class="pr-0 max-sm:hidden">
 					<Select.Root type="single" value={category} onValueChange={onCategory}>
 						<Select.Trigger
-							class="h-7 gap-1 border-0 bg-transparent px-2 text-xs text-muted-foreground shadow-none focus-visible:ring-0"
+							class="h-7 gap-1 rounded-full border-0 bg-muted/60 px-3 text-xs font-medium text-foreground shadow-none hover:bg-muted focus-visible:ring-0"
 						>
 							{titleCase(category)}
 						</Select.Trigger>
@@ -83,6 +84,7 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
+					<Separator orientation="vertical" class="ml-2 !h-5" />
 				</InputGroup.Addon>
 				<InputGroup.Input
 					type="text"
